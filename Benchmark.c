@@ -1,3 +1,14 @@
+/*
+ * 5DV171: Assignment 3
+ * Author: Niclas Nyström
+ * Date:   2017-10-24
+ * Version: 1.0
+ *
+ * Benchmark for comparing Linux IO Schedulers according
+ * to read, write and throughput policies.
+ */
+
+
 #include <stdio.h>
 #include <sys/types.h>
 #include <stdlib.h>
@@ -7,30 +18,29 @@
 #include <time.h>
 #include <string.h>
 
-#define NUM_THREADS 20
 
-pthread_t tid[NUM_THREADS];
-double times[NUM_THREADS];
+// Enter number of threads. 4/20 used in report.
+#define NUM_THREADS 20
 
 void *BENCH_FUNC(void *OP);
 
-
+pthread_t tid[NUM_THREADS];
 
 int main(int argc, char* argv[]){
 
   int i = 0;
   int err;
 
-  int threadIDS[NUM_THREADS];
+  int threadID[NUM_THREADS];
   for (int k = 0; k < NUM_THREADS; k++) {
-    threadIDS[k] = k+1;
+    threadID[k] = k+1;
   }
 
 
   clock_t start_TP = clock();
 
   while (i  < NUM_THREADS) {
-    err = pthread_create(&(tid[i]), NULL, &BENCH_FUNC, &threadIDS[i]);
+    err = pthread_create(&(tid[i]), NULL, &BENCH_FUNC, &threadID[i]);
     if (err == 0) {
       //printf("Successfully created thread %d\n", i+1);
     } else {
@@ -51,8 +61,7 @@ int main(int argc, char* argv[]){
   }
   clock_t end_TP = clock();
   double elapsed_time_TP = (double) (end_TP - start_TP) / CLOCKS_PER_SEC;
-  printf("Throughput nThreads %d: Elapsed time %f \n", NUM_THREADS, elapsed_time_TP );
-
+  printf("\nThroughput with %d threads: %f seconds\n", NUM_THREADS, elapsed_time_TP );
   return 0;
 }
 
@@ -60,7 +69,7 @@ int main(int argc, char* argv[]){
 
 void *BENCH_FUNC(void *OP) {
 
-
+  // Read test
   clock_t start_Read = clock();
   int threadID = *(int*) OP;
   int maxSize = 1000000;
@@ -77,9 +86,9 @@ void *BENCH_FUNC(void *OP) {
   fclose(fp);
   clock_t end_Read = clock();
   double elapsed_time_Read = (double) (end_Read - start_Read) / CLOCKS_PER_SEC;
-  printf("Read thread %d: Elapsed time %f \n", threadID, elapsed_time_Read );
+  printf("Read thread %d: %f seconds \n", threadID, elapsed_time_Read );
 
-
+  // Write test
   clock_t start_Write = clock();
   char filename[20];
   sprintf(filename, "%d", threadID);
@@ -87,11 +96,10 @@ void *BENCH_FUNC(void *OP) {
   fp = fopen(filename, "w+");
   fputs(data, fp);
   fclose(fp);
-  //times[threadID] = elapsed_time;
 
   clock_t end_Write = clock();
   double elapsed_time_Write = (double) (end_Write - start_Write) / CLOCKS_PER_SEC;
-  printf("Write thread %d: Elapsed time %f \n", threadID, elapsed_time_Write );
-
+  printf("Write thread %d: %f seconds\n", threadID, elapsed_time_Write );
   return NULL;
 }
+
